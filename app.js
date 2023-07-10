@@ -1,33 +1,56 @@
+const ERROR_MESSAGE = {
+notEmpty:"Поле повино бути заповнене..."
+}
 const FIELDS_CONFIG = {
   firstName: {
-    notEmpty: { min: 0, error: "Поле повино бути заповнене" },
-    minimumCharacters: {min: 3, massage: "Мінімум символів" },
-    maximumCharacters: {max: 10, massage: "Імя повино складатися з 3 до 25 символів",
+    notEmpty: { message: ERROR_MESSAGE.notEmpty },
+    minimumCharacters: { min: 3, message: "Мінімум символів" },
+    maximumCharacters: {
+      max: 10,
+      message: "Імя повино складатися з 3 до 25 символів",
     },
+    firstUpperCase: {message: "Перша буква повина писатися з великої літери"}
   },
+  lastName:{
+    notEmpty: { message: ERROR_MESSAGE.notEmpty },
+  }
 };
-// error massage or false
-const minLength = (value, options) => {return !(value.length >= options.min) ? options.message + ' ' + options.min + ' chars' : false;
+// ERROR MESSAGE OR FALSE
+const minLength = (value, options) => {
+  return !(value.length >= options.min)
+    ? options.message + " " + options.min + " chars"
+    : false;
 };
-const maxLength = (value, options) => {return !(value.length <= options.max) ? options.message + ' ' + options.max + ' chars' : false;}
-const notEmpty = (v) => v.length;
+const maxLength = (value, options) => {
+  return !(value.length <= options.max)
+    ? options.message + " " + options.max + " chars"
+    : false;
+};
+const notEmpty = (value, options) => (!value ? options.message : false);
+
+const isFirstUpperCase = (value, options) => {
+  const firstLetter = value[0]
+  return !(firstLetter === value[0].toUpperCase()) ?
+  options.message : false
+}
 
 const VALIDATION_FUNCTIONS_CONFIG = {
   minimumCharacters: minLength,
   maximumCharacters: maxLength,
   notEmpty: notEmpty,
+  firstUpperCase: isFirstUpperCase
 };
 
 const VALIDATOR = (name, value) => {
   const fieldRules = FIELDS_CONFIG[name];
+  // debugger;
   for (let rule in fieldRules) {
-    console.log(fieldRules[rule])
-    const massage = VALIDATION_FUNCTIONS_CONFIG[rule](value,fieldRules[rule])
-    if (massage) return massage;
+    const message = VALIDATION_FUNCTIONS_CONFIG[rule](value, fieldRules[rule]);
+    // debugger;
+    if (message) return message;
   }
   return false;
 };
-
 
 const firstN = document.getElementById("first-name");
 const lastN = document.getElementById("last-name");
@@ -74,7 +97,7 @@ const min_max = (input, min, max, arr, textError) => {
     addError(arr, textError);
   }
 };
-const addError = (arr, textError) => {
+const applyError = (arr, textError) => {
   if (!label[arr].querySelector("p")) {
     createErr(arr, textError);
   }
@@ -88,37 +111,12 @@ const deleteError = (arr) => {
 };
 
 //first Name
-
-const ruleName = () => {
-  min_max(
-    firstN,
-    CONFIG.first_name.min,
-    CONFIG.first_name.max,
-    CONFIG.first_name.length,
-    CONFIG.first_name.err
-  );
-  if (includeNumber(firstN.value)) {
-    addError(CONFIG.first_name.length, CONFIG.first_name.errNum);
-    return;
-  }
-};
-
 const onChangeName = (e) => {
-  // upperCase(firstN);
-  // spaces(firstN);
-  // deleteError(CONFIG.first_name.length);
-  // ruleName();
-  const res = VALIDATOR(e.target.name, e.target.value);
-  if (res) {
-    addError(0, res);
+  const result = VALIDATOR(e.target.name, e.target.value);
+  if (result) {
+    /// 0 change to name
+    applyError(0, result);
   } else deleteError(0);
-
-  // if(res.isValid){
-  //   console.log('res is valid')
-  // }
-  // else {
-  //   addError(0,res.error)
-  // }
 };
 
 //last Name
