@@ -2,7 +2,16 @@ const ERROR_MESSAGE = {
   notEmpty: "Field not to be empty",
   minVal: "Minimum caracters must be",
   maxVal: "Maximum caracters must be",
-  firstLetter: "First letter must be upercase",
+  firstLetter: "First letter must be uppercase",
+  spaces: "Name not to be with spaces",
+  isNumber: "The name cannot contain a number",
+  corectEmail: 'Write correctly Email',
+  charsUsa: 'Phone number must be',
+  charsUa: 'Phone number must be',
+  minValDate: 'You are not yet',
+  maxValDate: 'You are already',
+  pastDate: 'You are not born yet',
+
 };
 const FIELDS_CONFIG = {
   firstName: {
@@ -10,10 +19,29 @@ const FIELDS_CONFIG = {
     minimumCharacters: { min: 3, message: ERROR_MESSAGE.minVal },
     maximumCharacters: { max: 10, message: ERROR_MESSAGE.maxVal,},
     firstUpperCase: { message: ERROR_MESSAGE.firstLetter },
+    spaces: {message: ERROR_MESSAGE.spaces},
+    isNumber: {message: ERROR_MESSAGE.isNumber}
   },
   lastName: {
     notEmpty: { message: ERROR_MESSAGE.notEmpty },
+    minimumCharacters: { min: 3, message: ERROR_MESSAGE.minVal },
+    maximumCharacters: { max: 10, message: ERROR_MESSAGE.maxVal,},
+    firstUpperCase: { message: ERROR_MESSAGE.firstLetter },
+    spaces: {message: ERROR_MESSAGE.spaces},
+    isNumber: {message: ERROR_MESSAGE.isNumber}
   },
+  email:{
+    corectEmail: {message:ERROR_MESSAGE.corectEmail}
+  },
+  phone: {
+    selectUSA: {min: 12, message:ERROR_MESSAGE.charsUsa},
+    selectUA: {min:13, message:ERROR_MESSAGE.charsUa}
+  },
+  date:{
+    past:{message:ERROR_MESSAGE.pastDate},
+    minValDate: {min: 568036800000, message:ERROR_MESSAGE.minValDate}, //18 y.o in ms
+    maxValDate: {max: 2051244000000, message:ERROR_MESSAGE.maxValDate}, //65 y.o in ms 
+  }
 };
 // ERROR MESSAGE OR FALSE
 const minLength = (value, options) => {
@@ -29,15 +57,76 @@ const maxLength = (value, options) => {
 const notEmpty = (value, options) => (!value ? options.message : false);
 
 const isFirstUpperCase = (value, options) => {
-  const firstLetter = value[0];
-  return !(firstLetter === value[0].toUpperCase()) ? options.message : false;
-};
+  const firstLetter = value[0]
+  return !(firstLetter === value[0].toUpperCase()) ?
+  options.message : false
+}
+
+
+const isSpaces = (value, options) => (/\s/.test(value) ? options.message : false)
+const isNumber = (value, options) => (/\d/.test(value) ? options.message : false)
+const isEmail = (value, options) => (!regexEmail.test(value) ? options.message : false)
+
+// const usaNumber = (value, options) => {
+//   return !(value.length >=options.min) ? options.message + " " + options.max + " chars" : false
+// }
+// const uaNumber = (value, options) => {
+//   return !(value.length >=options.min) ? options.message + " " + options.max + " chars" : false
+// }
+
+// const selectUSA = (value) => {
+//     return (value.target.value === "USA") ?
+//       select.className = "usa"
+//       phone.value = "+1"
+//       deleteError(CONFIG.phone.length)
+      
+//     }
+
+//   const selectUA = (value) => {
+//     if (value.target.value === "UA") {
+//       select.className = "ua";
+//       phone.value = "+380";
+//       deleteError(CONFIG.phone.length);
+//       return;
+//     }
+//   };
+
+const pastDate = (value, options)=>{
+  let today = new Date();
+  let selectDate = new Date(date.value);
+  if (Math.sign(today.getTime() - selectDate.getTime()) === -1) {
+    return options.message
+  }else false
+}
+
+const minDate = (value, options)=>{
+  let today = new Date();
+  let selectDate = new Date(date.value);
+  if (today.getTime() - selectDate.getTime() < options.min) {
+    return options.message + ' ' + (parseInt(options.min/1000/60/60/24/366 + 1))+ ' ' + 'years old'
+  }else false
+}
+const maxDate = (value, options)=>{
+  let today = new Date();
+  let selectDate = new Date(date.value);
+  if (today.getTime() - selectDate.getTime() > options.max) {
+    return options.message + ' ' + (parseInt(+options.max/1000/60/60/24/366)) + ' ' + 'years old'
+  }else false
+}
+
 
 const VALIDATION_FUNCTIONS_CONFIG = {
   minimumCharacters: minLength,
   maximumCharacters: maxLength,
   notEmpty: notEmpty,
   firstUpperCase: isFirstUpperCase,
+  spaces: isSpaces,
+  isNumber: isNumber,
+  corectEmail: isEmail,
+  minValDate:minDate,
+  maxValDate:maxDate,
+  past:pastDate,
+  
 };
 
 const VALIDATOR = (name, value) => {
@@ -49,24 +138,16 @@ const VALIDATOR = (name, value) => {
   return false;
 };
 
-// const findIndexLabel = () => {
-//   for (let i=0; labels.length < i; i++){ 
-//     console.log(labels[i])
-//   }
-// }
-
-const firstN = document.getElementById("firstName");
+const firstN = document.getElementById("first-name");
 const lastN = document.getElementById("last-name");
-const labels = document.querySelectorAll("label");
-const email = document.getElementById("email");
+const email = document.getElementById("e_mail");
 const select = document.querySelector("select");
 const phone = document.getElementById("phone");
 const password = document.getElementById("password");
 const confirm_password = document.getElementById("confirm-password");
 const btnSub = document.getElementById("register_form");
 const btnRes = document.getElementById("res");
-
-let date = document.getElementById("date");
+const date = document.getElementById("dateOfBirth");
 
 const regexEmail = new RegExp("[a-z0-9]+@[a-z]+.[a-z]{2,3}");
 const regexStr = new RegExp("[a-zA-Z]");
@@ -74,160 +155,71 @@ const regexPassword = new RegExp(
   "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,20}$"
 );
 
-
 //root
-
-const spaces = (text) => {
-  text.value = text.value.split(" ").join("");
-};
-const includeNumber = (myString) => {
-  if (/\d/.test(myString)) {
-    return true;
-  }
-};
-
-const createErr = (name, text) => {
+const createErr = (element, text) => {
   const err = document.createElement("p");
   err.innerHTML = text;
-  labels[name].append(err);
-  labels[name].children[0].style.borderBottom = "4px solid red";
+  element.append(err);
+  element.children[0].style.borderBottom = "4px solid red";
 };
 const applyError = (name, textError) => {
-  if (!labels[name].querySelector("p")) {
-    createErr(name, textError);
+  const label = document.getElementById(name)
+  if (!label.querySelector("p")) {
+    createErr(label, textError);
   }
 };
-
 const deleteError = (name) => {
-  if (labels[name].querySelector("p")) {
-    // labels[name].lastElementChild.remove();
-    // labels[name].children[0].style.borderBottom = "4px solid #668d39";
-    // return;
-  }
-};
-
-//first Name
-const onChangeName = ({target}) => {
-  const result = VALIDATOR(target.name, target.value);
-  console.log(target.name)
-  findIndexLabel()
-  deleteError(0);
-  if (!result) {
-    // 0 change to name
-    applyError(0, result);
-  }
-};
-
-//last Name
-const ruleLastName = () => {
-  min_max(
-    lastN,
-    CONFIG.last_name.min,
-    CONFIG.last_name.max,
-    CONFIG.last_name.length,
-    CONFIG.last_name.err
-  );
-  if (includeNumber(lastN.value)) {
-    addError(CONFIG.last_name.length, CONFIG.last_name.errNum);
+  const label = document.getElementById(name)
+  if (label.querySelector("p")) {
+    label.lastElementChild.remove();
+    label.children[0].style.borderBottom = "4px solid #668d39";
     return;
   }
 };
 
-const onChangeLastName = () => {
-  upperCase(lastN);
-  spaces(lastN);
-  deleteError(CONFIG.last_name.length);
-  ruleLastName();
+
+//first Name
+const onChangeName = ({target}) => {
+  const result = VALIDATOR(target.name, target.value);
+  deleteError(target.name);
+  if (result) {
+    applyError(target.name, result);
+  }
 };
-// //Email
-// const checkEmail = (text, arr, textError) => {
-//   if (!regexEmail.test(text.value)) {
-//     addError(arr, textError);
-//     return;
-//   }
-// };
-// const onChangeEmail = () => {
-//   deleteError(CONFIG.email.length);
-//   checkEmail(email, CONFIG.email.length, CONFIG.email.err);
-// };
 
-// //Phone
-// const usaRule = () => {
-//   if (select.value === "USA") {
-//     min_max(
-//       phone,
-//       CONFIG.phone.USA.min,
-//       CONFIG.phone.USA.max,
-//       CONFIG.phone.length,
-//       CONFIG.phone.USA.err
-//     );
-//     return;
-//   }
-// };
-// const uaRule = () => {
-//   if (select.value === "UA") {
-//     min_max(
-//       phone,
-//       CONFIG.phone.UA.min,
-//       CONFIG.phone.UA.max,
-//       CONFIG.phone.length,
-//       CONFIG.phone.UA.err
-//     );
-//     return;
-//   }
-// };
-// const onlyNumber = () => {
-//   if (regexStr.test(phone.value)) {
-//     addError(CONFIG.phone.length, CONFIG.phone.errNum);
-//     return;
-//   }
-// };
-// const checkPhone = () => {
-//   deleteError(CONFIG.phone.length);
-//   onlyNumber();
-//   usaRule();
-//   uaRule();
-// };
-// //seclec country number
-// const selectUSA = (e) => {
-//   if (e.target.value === "USA") {
-//     select.className = "usa";
-//     phone.value = "+1";
-//     deleteError(CONFIG.phone.length);
-//     return;
-//   }
-// };
-// const selectUA = (e) => {
-//   if (e.target.value === "UA") {
-//     select.className = "ua";
-//     phone.value = "+380";
-//     deleteError(CONFIG.phone.length);
-//     return;
-//   }
-// };
+// last Name
+const onChangeLastName = ({target}) => {
+  const result = VALIDATOR(target.name, target.value);
+  deleteError(target.name);
+  if (result) {
+    applyError(target.name, result);
+  }
+};
+//Email
+const onChangeEmail = ({target}) => {
+  const result = VALIDATOR(target.name, target.value);
+  deleteError(target.name);
+  if (result) {
+    applyError(target.name, result);
+  }
+};
 
-// const changeOption = (e) => {
-//   selectUSA(e);
-//   selectUA(e);
-// };
+//Phone
+const onChangePhone = () => {
+  
+};
+//seclec country number
+const selectNumber = ({target}) => {
+  
+};
 // // date of birth
-// const checkDate = (min, max) => {
-//   let today = new Date();
-//   let selectDate = new Date(date.value);
-//   if (Math.sign(today.getTime() - selectDate.getTime()) === -1) {
-//     addError(CONFIG.DATE.length, CONFIG.DATE.err_past);
-//   }
-//   if (today.getTime() - selectDate.getTime() < min) {
-//     addError(CONFIG.DATE.length, CONFIG.DATE.err18);
-//   }
-//   if (today.getTime() - selectDate.getTime() > max) {
-//     addError(CONFIG.DATE.length, CONFIG.DATE.err65);
-//   }
-// };
-// const onChangeDate = () => {
-//   deleteError(CONFIG.DATE.length);
-//   checkDate(CONFIG.DATE.min_date, CONFIG.DATE.max_date);
-// };
+const onChangeDate = ({target}) => {
+  const result = VALIDATOR(target.name, target.value);
+  deleteError(target.name);
+  if (result) {
+    applyError(target.name, result);
+  }
+};
 
 // //password
 
@@ -273,15 +265,15 @@ const onChangeLastName = () => {
 // };
 // //check on error all form
 // const deleteAllError = () => {
-//   labels.forEach((element, i) => {
+//   label.forEach((element, i) => {
 //     if (element.querySelector("p")) {
 //       element.lastElementChild.remove();
-//       labels[i].firstElementChild.style.borderBottom = "4px solid #668d39";
+//       label[i].firstElementChild.style.borderBottom = "4px solid #668d39";
 //     }
 //   });
 // };
 // const errorAndEmpty = () => {
-//   labels.forEach((element) => {
+//   label.forEach((element) => {
 //     if (element.lastElementChild.value === "") {
 //       addError(6, "Заповніть корректно всі поля");
 //     }
@@ -294,7 +286,7 @@ const onChangeLastName = () => {
 // };
 
 // const cleanValue = () => {
-//   labels.forEach((element) => {
+//   label.forEach((element) => {
 //     element.lastElementChild.value = "";
 //   });
 // };
@@ -322,14 +314,14 @@ const onChangeLastName = () => {
 //   img.src = "./img/done.png";
 //   img.alt = "done";
 //   background.append(img);
-// };s
+// };
 
 firstN.addEventListener("change", onChangeName);
 lastN.addEventListener("change", onChangeLastName);
-// email.addEventListener("change", onChangeEmail);
-// select.addEventListener("change", changeOption);
-// phone.addEventListener("change", checkPhone);
-// date.addEventListener("change", onChangeDate);
+email.addEventListener("change", onChangeEmail);
+select.addEventListener("change", selectNumber);
+phone.addEventListener("change", onChangePhone);
+date.addEventListener("change", onChangeDate);
 // password.addEventListener("change", onChangePassword);
 // confirm_password.addEventListener("change", checkDuplicatePassword);
 // btnRes.addEventListener("click", reset);
