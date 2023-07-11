@@ -4,44 +4,47 @@ const ERROR_MESSAGE = {
   maxVal: "Maximum caracters must be",
   firstLetter: "First letter must be uppercase",
   spaces: "Name not to be with spaces",
-  isNumber: "The name cannot contain a number",
-  corectEmail: 'Write correctly Email',
-  charsUsa: 'Phone number must be',
-  charsUa: 'Phone number must be',
-  minValDate: 'You are not yet',
-  maxValDate: 'You are already',
-  pastDate: 'You are not born yet',
-
+  isNameNumber: "The name cannot contain a number",
+  corectEmail: "Write correctly Email",
+  charsUsa: "Phone number must be",
+  charsUa: "Phone number must be",
+  isPhoneNumber: ["The phone number must be written in numbers"],
+  minValDate: "You are not yet",
+  maxValDate: "You are already",
+  pastDate: "You are not born yet",
 };
 const FIELDS_CONFIG = {
   firstName: {
     notEmpty: { message: ERROR_MESSAGE.notEmpty },
     minimumCharacters: { min: 3, message: ERROR_MESSAGE.minVal },
-    maximumCharacters: { max: 10, message: ERROR_MESSAGE.maxVal,},
+    maximumCharacters: { max: 10, message: ERROR_MESSAGE.maxVal },
     firstUpperCase: { message: ERROR_MESSAGE.firstLetter },
-    spaces: {message: ERROR_MESSAGE.spaces},
-    isNumber: {message: ERROR_MESSAGE.isNumber}
+    spaces: { message: ERROR_MESSAGE.spaces },
+    isNumber: { message: ERROR_MESSAGE.isNumber },
   },
   lastName: {
     notEmpty: { message: ERROR_MESSAGE.notEmpty },
     minimumCharacters: { min: 3, message: ERROR_MESSAGE.minVal },
-    maximumCharacters: { max: 10, message: ERROR_MESSAGE.maxVal,},
+    maximumCharacters: { max: 10, message: ERROR_MESSAGE.maxVal },
     firstUpperCase: { message: ERROR_MESSAGE.firstLetter },
-    spaces: {message: ERROR_MESSAGE.spaces},
-    isNumber: {message: ERROR_MESSAGE.isNumber}
+    spaces: { message: ERROR_MESSAGE.spaces },
+    isNumber: { message: ERROR_MESSAGE.isNameNumber },
   },
-  email:{
-    corectEmail: {message:ERROR_MESSAGE.corectEmail}
+  email: {
+    notEmpty: { message: ERROR_MESSAGE.notEmpty },
+    corectEmail: { message: ERROR_MESSAGE.corectEmail },
   },
-  phone: {
-    selectUSA: {min: 12, message:ERROR_MESSAGE.charsUsa},
-    selectUA: {min:13, message:ERROR_MESSAGE.charsUa}
+  phoneNumber: {
+    notEmpty: { message: ERROR_MESSAGE.notEmpty },
+    selectUSA: { equal: 12, message: ERROR_MESSAGE.charsUsa },
+    selectUA: { equal: 13, message: ERROR_MESSAGE.charsUa },
+    notNumber: { message: ERROR_MESSAGE.isPhoneNumber },
   },
-  date:{
-    past:{message:ERROR_MESSAGE.pastDate},
-    minValDate: {min: 568036800000, message:ERROR_MESSAGE.minValDate}, //18 y.o in ms
-    maxValDate: {max: 2051244000000, message:ERROR_MESSAGE.maxValDate}, //65 y.o in ms 
-  }
+  date: {
+    past: { message: ERROR_MESSAGE.pastDate },
+    minValDate: { min: 568036800000, message: ERROR_MESSAGE.minValDate }, //18 y.o in ms
+    maxValDate: { max: 2051244000000, message: ERROR_MESSAGE.maxValDate }, //65 y.o in ms
+  },
 };
 // ERROR MESSAGE OR FALSE
 const minLength = (value, options) => {
@@ -57,63 +60,69 @@ const maxLength = (value, options) => {
 const notEmpty = (value, options) => (!value ? options.message : false);
 
 const isFirstUpperCase = (value, options) => {
-  const firstLetter = value[0]
-  return !(firstLetter === value[0].toUpperCase()) ?
-  options.message : false
-}
+  const firstLetter = value[0];
+  return !(firstLetter === value[0].toUpperCase()) ? options.message : false;
+};
 
+const isSpaces = (value, options) =>
+  /\s/.test(value) ? options.message : false;
+const isNumber = (value, options) =>
+  /\d/.test(value) ? options.message : false;
+const notNumber = (value, options) =>
+  regexStr.test(value) ? options.message : false;
+const isEmail = (value, options) =>
+  !regexEmail.test(value) ? options.message : false;
 
-const isSpaces = (value, options) => (/\s/.test(value) ? options.message : false)
-const isNumber = (value, options) => (/\d/.test(value) ? options.message : false)
-const isEmail = (value, options) => (!regexEmail.test(value) ? options.message : false)
-
-// const usaNumber = (value, options) => {
-//   return !(value.length >=options.min) ? options.message + " " + options.max + " chars" : false
-// }
-// const uaNumber = (value, options) => {
-//   return !(value.length >=options.min) ? options.message + " " + options.max + " chars" : false
-// }
-
-// const selectUSA = (value) => {
-//     return (value.target.value === "USA") ?
-//       select.className = "usa"
-//       phone.value = "+1"
-//       deleteError(CONFIG.phone.length)
-      
-//     }
-
-//   const selectUA = (value) => {
-//     if (value.target.value === "UA") {
-//       select.className = "ua";
-//       phone.value = "+380";
-//       deleteError(CONFIG.phone.length);
-//       return;
-//     }
-//   };
-
-const pastDate = (value, options)=>{
+const usaNumber = (value, options) => {
+  const usa = document.getElementById("usa");
+  if (usa.selected) {
+    return !(value.length === options.equal)
+      ? options.message + " " + options.equal + " chars"
+      : false;
+  }
+};
+const uaNumber = (value, options) => {
+  const ua = document.getElementById("ua");
+  if (ua.selected) {
+    return !(value.length === options.equal)
+      ? options.message + " " + options.equal + " chars"
+      : false;
+  }
+};
+const pastDate = (value, options) => {
   let today = new Date();
   let selectDate = new Date(date.value);
   if (Math.sign(today.getTime() - selectDate.getTime()) === -1) {
-    return options.message
-  }else false
-}
+    return options.message;
+  } else false;
+};
 
-const minDate = (value, options)=>{
+const minDate = (value, options) => {
   let today = new Date();
   let selectDate = new Date(date.value);
   if (today.getTime() - selectDate.getTime() < options.min) {
-    return options.message + ' ' + (parseInt(options.min/1000/60/60/24/366 + 1))+ ' ' + 'years old'
-  }else false
-}
-const maxDate = (value, options)=>{
+    return (
+      options.message +
+      " " +
+      parseInt(options.min / 1000 / 60 / 60 / 24 / 366 + 1) +
+      " " +
+      "years old"
+    );
+  } else false;
+};
+const maxDate = (value, options) => {
   let today = new Date();
   let selectDate = new Date(date.value);
   if (today.getTime() - selectDate.getTime() > options.max) {
-    return options.message + ' ' + (parseInt(+options.max/1000/60/60/24/366)) + ' ' + 'years old'
-  }else false
-}
-
+    return (
+      options.message +
+      " " +
+      parseInt(+options.max / 1000 / 60 / 60 / 24 / 366) +
+      " " +
+      "years old"
+    );
+  } else false;
+};
 
 const VALIDATION_FUNCTIONS_CONFIG = {
   minimumCharacters: minLength,
@@ -123,10 +132,12 @@ const VALIDATION_FUNCTIONS_CONFIG = {
   spaces: isSpaces,
   isNumber: isNumber,
   corectEmail: isEmail,
-  minValDate:minDate,
-  maxValDate:maxDate,
-  past:pastDate,
-  
+  selectUSA: usaNumber,
+  selectUA: uaNumber,
+  minValDate: minDate,
+  maxValDate: maxDate,
+  past: pastDate,
+  notNumber: notNumber,
 };
 
 const VALIDATOR = (name, value) => {
@@ -163,13 +174,13 @@ const createErr = (element, text) => {
   element.children[0].style.borderBottom = "4px solid red";
 };
 const applyError = (name, textError) => {
-  const label = document.getElementById(name)
+  const label = document.getElementById(name);
   if (!label.querySelector("p")) {
     createErr(label, textError);
   }
 };
 const deleteError = (name) => {
-  const label = document.getElementById(name)
+  const label = document.getElementById(name);
   if (label.querySelector("p")) {
     label.lastElementChild.remove();
     label.children[0].style.borderBottom = "4px solid #668d39";
@@ -177,9 +188,8 @@ const deleteError = (name) => {
   }
 };
 
-
 //first Name
-const onChangeName = ({target}) => {
+const onChangeName = ({ target }) => {
   const result = VALIDATOR(target.name, target.value);
   deleteError(target.name);
   if (result) {
@@ -188,7 +198,7 @@ const onChangeName = ({target}) => {
 };
 
 // last Name
-const onChangeLastName = ({target}) => {
+const onChangeLastName = ({ target }) => {
   const result = VALIDATOR(target.name, target.value);
   deleteError(target.name);
   if (result) {
@@ -196,7 +206,7 @@ const onChangeLastName = ({target}) => {
   }
 };
 //Email
-const onChangeEmail = ({target}) => {
+const onChangeEmail = ({ target }) => {
   const result = VALIDATOR(target.name, target.value);
   deleteError(target.name);
   if (result) {
@@ -205,15 +215,29 @@ const onChangeEmail = ({target}) => {
 };
 
 //Phone
-const onChangePhone = () => {
-  
+const onChangePhone = ({ target }) => {
+  const result = VALIDATOR(target.name, target.value);
+  deleteError(target.name);
+  if (result) {
+    applyError(target.name, result);
+  }
 };
 //seclec country number
-const selectNumber = ({target}) => {
-  
+const selectNumber = ({ target }) => {
+  if (target.value === "USA") {
+    deleteError(target.parentElement.id);
+    select.className = "usa";
+    phone.value = "+1";
+    return;
+  }
+  if (target.value === "UA") {
+    deleteError(target.parentElement.id);
+    select.className = "ua";
+    phone.value = "+380";
+  }
 };
 // // date of birth
-const onChangeDate = ({target}) => {
+const onChangeDate = ({ target }) => {
   const result = VALIDATOR(target.name, target.value);
   deleteError(target.name);
   if (result) {

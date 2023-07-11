@@ -34,21 +34,28 @@
           >Email
           <input type="email" name="email" placeholder="Email" id="e_mail" />
         </label>
-        <label for="phone-number" class="phone label"
+        <label id="phoneNumber" for="phoneNumber" class="phone label"
           >Phone
           <select>
-            <option value="USA" name="usa">USA</option>
-            <option value="UA">UA</option></select
-          ><input
+            <option selected disabled>Country</option>
+            <option value="USA" id="usa">USA</option>
+            <option value="UA" id="ua">UA</option>
+          </select>
+          <input
             type="text"
-            name="phone-number"
+            name="phoneNumber"
             placeholder="Phone"
             id="phone"
           />
         </label>
         <label id="date" for="date" class="label"
           >Day of birth
-          <input type="date" name="date" placeholder="Day of birth" id="dateOfBirth" />
+          <input
+            type="date"
+            name="date"
+            placeholder="Day of birth"
+            id="dateOfBirth"
+          />
         </label>
         <label for="password" class="label"
           >Password
