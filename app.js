@@ -12,6 +12,13 @@ const ERROR_MESSAGE = {
   minValDate: "You are not yet",
   maxValDate: "You are already",
   pastDate: "You are not born yet",
+  select: 'Select a country number',
+  minPassword: 'Minimum caracters must be',
+  maxPassword: 'Maximum caracters must be',
+  oneUpperPassword: 'Password must include one letter uppercase and one number',
+  symbolPasword: 'Password must include one sumbol (@!#$%,.)',
+  mustMachPassword: 'Passwords must match',
+  haveError: 'Fix all error'
 };
 const FIELDS_CONFIG = {
   firstName: {
@@ -36,6 +43,7 @@ const FIELDS_CONFIG = {
   },
   phoneNumber: {
     notEmpty: { message: ERROR_MESSAGE.notEmpty },
+    select: { message: ERROR_MESSAGE.select },
     selectUSA: { equal: 12, message: ERROR_MESSAGE.charsUsa },
     selectUA: { equal: 13, message: ERROR_MESSAGE.charsUa },
     notNumber: { message: ERROR_MESSAGE.isPhoneNumber },
@@ -45,6 +53,18 @@ const FIELDS_CONFIG = {
     minValDate: { min: 568036800000, message: ERROR_MESSAGE.minValDate }, //18 y.o in ms
     maxValDate: { max: 2051244000000, message: ERROR_MESSAGE.maxValDate }, //65 y.o in ms
   },
+  password: {
+    minPassword: { min: 6, message: ERROR_MESSAGE.minPassword },
+    maxPassword: { max: 20, message: ERROR_MESSAGE.maxPassword },
+    oneUpperPassword: { message: ERROR_MESSAGE.oneUpperPassword },
+    symbolPassword: { message: ERROR_MESSAGE.symbolPasword }
+  },
+  confirmPassword: {
+    mustMachPassword: { message: ERROR_MESSAGE.mustMachPassword }
+  },
+  submit: {
+    checkFields: {message:ERROR_MESSAGE.haveError}
+  }
 };
 // ERROR MESSAGE OR FALSE
 const minLength = (value, options) => {
@@ -73,6 +93,13 @@ const notNumber = (value, options) =>
 const isEmail = (value, options) =>
   !regexEmail.test(value) ? options.message : false;
 
+const selectCountry = (value, options) => {
+  const usa = document.getElementById("usa");
+  const ua = document.getElementById("ua");
+  if (!(usa.selected || ua.selected)) {
+    return options.message
+  } else false
+}
 const usaNumber = (value, options) => {
   const usa = document.getElementById("usa");
   if (usa.selected) {
@@ -124,6 +151,17 @@ const maxDate = (value, options) => {
   } else false;
 };
 
+toUpperCasePasword = (value, options) => { return !oneUperandNumber.test(value) ? options.message : false }
+toSymbolPasword = (value, options) => { return !oneSymbol.test(value) ? options.message : false }
+checkPassword = (value, options) => { return password.value !== value ? options.message : false }
+checkFields = (value, options) =>{ 
+  value.forEach((element) => {
+    if (element.lastElementChild.value === "" || btnSub.querySelector("p")) {
+     return options.message
+    } else false
+  });
+ }
+
 const VALIDATION_FUNCTIONS_CONFIG = {
   minimumCharacters: minLength,
   maximumCharacters: maxLength,
@@ -132,15 +170,32 @@ const VALIDATION_FUNCTIONS_CONFIG = {
   spaces: isSpaces,
   isNumber: isNumber,
   corectEmail: isEmail,
+  select: selectCountry,
   selectUSA: usaNumber,
   selectUA: uaNumber,
   minValDate: minDate,
   maxValDate: maxDate,
   past: pastDate,
   notNumber: notNumber,
+  minPassword: minLength,
+  maxPassword: maxLength,
+  mustMachPassword: checkPassword,
+  symbolPassword: toSymbolPasword,
+  oneUpperPassword: toUpperCasePasword,
+  checkFields: checkFields
+
 };
 
 const VALIDATOR = (name, value) => {
+  const fieldRules = FIELDS_CONFIG[name];
+  for (let rule in fieldRules) {
+    const message = VALIDATION_FUNCTIONS_CONFIG[rule](value, fieldRules[rule]);
+    if (message) return message;
+  }
+  return false;
+};
+
+const checkAllFields = (name, value) => {
   const fieldRules = FIELDS_CONFIG[name];
   for (let rule in fieldRules) {
     const message = VALIDATION_FUNCTIONS_CONFIG[rule](value, fieldRules[rule]);
@@ -154,7 +209,8 @@ const lastN = document.getElementById("last-name");
 const email = document.getElementById("e_mail");
 const select = document.querySelector("select");
 const phone = document.getElementById("phone");
-const password = document.getElementById("password");
+const label = document.querySelectorAll('.label')
+const password = document.getElementById("passwords");
 const confirm_password = document.getElementById("confirm-password");
 const btnSub = document.getElementById("register_form");
 const btnRes = document.getElementById("res");
@@ -162,9 +218,8 @@ const date = document.getElementById("dateOfBirth");
 
 const regexEmail = new RegExp("[a-z0-9]+@[a-z]+.[a-z]{2,3}");
 const regexStr = new RegExp("[a-zA-Z]");
-const regexPassword = new RegExp(
-  "^(?=.*?[A-Z])(?=.*?[a-z])(?=.*?[0-9])(?=.*?[#?!@$%^&*-]).{6,20}$"
-);
+const oneUperandNumber = new RegExp("(?=[A-Za-z0-9@#$%^&+!=]+$)^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*).*$");
+const oneSymbol = new RegExp('(?=.*?[#?!@$%^&*-])')
 
 //root
 const createErr = (element, text) => {
@@ -245,100 +300,76 @@ const onChangeDate = ({ target }) => {
   }
 };
 
-// //password
-
-// const checkPaswword = (text, arr, textError) => {
-//   if (!regexPassword.test(text.value)) {
-//     addError(arr, textError);
-//     return;
-//   }
-//   if (
-//     password.value.includes(firstN.value) ||
-//     password.value.includes(lastN.value)
-//   ) {
-//     addError(arr, CONFIG.password.errDubl);
-//     return;
-//   }
-// };
-// const onChangePassword = () => {
-//   deleteError(CONFIG.password.length);
-//   checkPaswword(password, CONFIG.password.length, CONFIG.password.err);
-// };
+const onChangePassword = ({ target }) => {
+  const result = VALIDATOR(target.name, target.value);
+  deleteError(target.name);
+  if (result) {
+    applyError(target.name, result);
+  }
+};
 
 // //confirm_password
 
-// const checkDuplicatePassword = () => {
-//   deleteError(CONFIG.confirm_password.length);
-//   if (password.value !== confirm_password.value) {
-//     addError(CONFIG.confirm_password.length, CONFIG.confirm_password.err);
-//     return;
-//   }
-// };
+const checkDuplicatePassword = ({ target }) => {
+  console.log(target.name)
+  const result = VALIDATOR(target.name, target.value);
+  deleteError(target.name);
+  if (result) {
+    applyError(target.name, result);
+  }
+};
 
-// //user Data
-// const getUserData = () => {
-//   const USER_DATA = {
-//     user_name: firstN.value,
-//     user_last_name: lastN.value,
-//     email: email.value,
-//     phone: phone.value,
-//     password: password.value,
-//     confirm_password: confirm_password.value,
-//   };
-//   console.log(USER_DATA);
-// };
-// //check on error all form
-// const deleteAllError = () => {
-//   label.forEach((element, i) => {
-//     if (element.querySelector("p")) {
-//       element.lastElementChild.remove();
-//       label[i].firstElementChild.style.borderBottom = "4px solid #668d39";
-//     }
-//   });
-// };
-// const errorAndEmpty = () => {
-//   label.forEach((element) => {
-//     if (element.lastElementChild.value === "") {
-//       addError(6, "Заповніть корректно всі поля");
-//     }
-//   });
-//   if (btnSub.querySelector("p")) {
-//     addError(6, "Заповніть корректно всі поля");
-//     return;
-//   }
-//   cleanValue();
-// };
+//user Data
+const getUserData = () => {
+  const USER_DATA = {
+    user_name: firstN.value,
+    user_last_name: lastN.value,
+    email: email.value,
+    phone: phone.value,
+    password: password.value,
+    confirm_password: confirm_password.value,
+  };
+  console.log(USER_DATA);
+};
 
-// const cleanValue = () => {
-//   label.forEach((element) => {
-//     element.lastElementChild.value = "";
-//   });
-// };
+// button reset
+const reset = (e) => {
+  deleteAllError();
+  cleanValue();
+  e.preventDefault();
+};
+const deleteAllError = () => {
+  label.forEach((element, i) => {
+    if (element.querySelector("p")) {
+      element.lastElementChild.remove();
+      label[i].firstElementChild.style.borderBottom = "4px solid #668d39";
+    }
+  });
+};
+const cleanValue = () => {
+  label.forEach((element) => {
+    element.lastElementChild.value = "";
+  });
+};
 
-// // button reset
-// const reset = (e) => {
-//   deleteAllError();
-//   cleanValue();
-//   e.preventDefault();
-// };
+//button submit
+const submitHeandler = (e) => {
+  e.preventDefault();
+  const result = VALIDATOR(label, confirm_password.name);
+  deleteError(confirm_password.name);
+  if (result) {
+    applyError(confirm_password.name, result);
+  }else done();
+};
 
-// //button submit
-// const submitHeandler = (e) => {
-//   e.preventDefault();
-//   deleteError(CONFIG.confirm_password.length);
-//   getUserData();
-//   errorAndEmpty();
-//   done();
-// };
-
-// //add img done
-// const done = () => {
-//   const background = document.getElementById("background");
-//   const img = document.createElement("img");
-//   img.src = "./img/done.png";
-//   img.alt = "done";
-//   background.append(img);
-// };
+//add img done
+const done = () => {
+  const background = document.getElementById("background");
+  const img = document.createElement("img");
+  img.src = "./img/done.png";
+  img.alt = "done";
+  background.append(img);
+};
 
 firstN.addEventListener("change", onChangeName);
 lastN.addEventListener("change", onChangeLastName);
@@ -346,7 +377,7 @@ email.addEventListener("change", onChangeEmail);
 select.addEventListener("change", selectNumber);
 phone.addEventListener("change", onChangePhone);
 date.addEventListener("change", onChangeDate);
-// password.addEventListener("change", onChangePassword);
-// confirm_password.addEventListener("change", checkDuplicatePassword);
-// btnRes.addEventListener("click", reset);
-// btnSub.addEventListener("submit", submitHeandler);
+password.addEventListener("change", onChangePassword);
+confirm_password.addEventListener("change", checkDuplicatePassword);
+btnRes.addEventListener("click", reset);
+btnSub.addEventListener("submit", submitHeandler);
