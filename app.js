@@ -18,7 +18,8 @@ const ERROR_MESSAGE = {
   oneUpperPassword: 'Password must include one letter uppercase and one number',
   symbolPasword: 'Password must include one sumbol (@!#$%,.)',
   mustMachPassword: 'Passwords must match',
-  haveError: 'Fix all error'
+  haveError: 'Fix all error',
+  epmtyFields: "Fill in all fields"
 };
 const FIELDS_CONFIG = {
   firstName: {
@@ -62,9 +63,6 @@ const FIELDS_CONFIG = {
   confirmPassword: {
     mustMachPassword: { message: ERROR_MESSAGE.mustMachPassword }
   },
-  submit: {
-    checkFields: {message:ERROR_MESSAGE.haveError}
-  }
 };
 // ERROR MESSAGE OR FALSE
 const minLength = (value, options) => {
@@ -151,16 +149,11 @@ const maxDate = (value, options) => {
   } else false;
 };
 
-toUpperCasePasword = (value, options) => { return !oneUperandNumber.test(value) ? options.message : false }
-toSymbolPasword = (value, options) => { return !oneSymbol.test(value) ? options.message : false }
-checkPassword = (value, options) => { return password.value !== value ? options.message : false }
-checkFields = (value, options) =>{ 
-  value.forEach((element) => {
-    if (element.lastElementChild.value === "" || btnSub.querySelector("p")) {
-     return options.message
-    } else false
-  });
- }
+const toUpperCasePasword = (value, options) => { return !oneUperandNumber.test(value) ? options.message : false }
+const toSymbolPasword = (value, options) => { return !oneSymbol.test(value) ? options.message : false }
+const checkPassword = (value, options) => { return password.value !== value ? options.message : false }
+
+
 
 const VALIDATION_FUNCTIONS_CONFIG = {
   minimumCharacters: minLength,
@@ -182,20 +175,9 @@ const VALIDATION_FUNCTIONS_CONFIG = {
   mustMachPassword: checkPassword,
   symbolPassword: toSymbolPasword,
   oneUpperPassword: toUpperCasePasword,
-  checkFields: checkFields
-
 };
 
 const VALIDATOR = (name, value) => {
-  const fieldRules = FIELDS_CONFIG[name];
-  for (let rule in fieldRules) {
-    const message = VALIDATION_FUNCTIONS_CONFIG[rule](value, fieldRules[rule]);
-    if (message) return message;
-  }
-  return false;
-};
-
-const checkAllFields = (name, value) => {
   const fieldRules = FIELDS_CONFIG[name];
   for (let rule in fieldRules) {
     const message = VALIDATION_FUNCTIONS_CONFIG[rule](value, fieldRules[rule]);
@@ -249,7 +231,7 @@ const onChangeName = ({ target }) => {
   deleteError(target.name);
   if (result) {
     applyError(target.name, result);
-  }
+  } else USER_DATA[target.name] = target.value
 };
 
 // last Name
@@ -258,7 +240,7 @@ const onChangeLastName = ({ target }) => {
   deleteError(target.name);
   if (result) {
     applyError(target.name, result);
-  }
+  } else USER_DATA[target.name] = target.value
 };
 //Email
 const onChangeEmail = ({ target }) => {
@@ -266,7 +248,7 @@ const onChangeEmail = ({ target }) => {
   deleteError(target.name);
   if (result) {
     applyError(target.name, result);
-  }
+  } else USER_DATA[target.name] = target.value
 };
 
 //Phone
@@ -275,7 +257,7 @@ const onChangePhone = ({ target }) => {
   deleteError(target.name);
   if (result) {
     applyError(target.name, result);
-  }
+  } else USER_DATA[target.name] = target.value
 };
 //seclec country number
 const selectNumber = ({ target }) => {
@@ -297,7 +279,7 @@ const onChangeDate = ({ target }) => {
   deleteError(target.name);
   if (result) {
     applyError(target.name, result);
-  }
+  } else USER_DATA[target.name] = target.value
 };
 
 const onChangePassword = ({ target }) => {
@@ -305,39 +287,30 @@ const onChangePassword = ({ target }) => {
   deleteError(target.name);
   if (result) {
     applyError(target.name, result);
-  }
+  } else USER_DATA[target.name] = target.value
 };
 
 // //confirm_password
 
 const checkDuplicatePassword = ({ target }) => {
-  console.log(target.name)
   const result = VALIDATOR(target.name, target.value);
   deleteError(target.name);
   if (result) {
     applyError(target.name, result);
-  }
+  } else USER_DATA[target.name] = target.value
 };
-
-//user Data
-const getUserData = () => {
-  const USER_DATA = {
-    user_name: firstN.value,
-    user_last_name: lastN.value,
-    email: email.value,
-    phone: phone.value,
-    password: password.value,
-    confirm_password: confirm_password.value,
-  };
-  console.log(USER_DATA);
+//get User Data
+const USER_DATA = {
+  firstName: false,
+  lastName: false,
+  email: false,
+  phoneNumber: false,
+  date: false,
+  password: false,
+  confirmPassword: false,
 };
 
 // button reset
-const reset = (e) => {
-  deleteAllError();
-  cleanValue();
-  e.preventDefault();
-};
 const deleteAllError = () => {
   label.forEach((element, i) => {
     if (element.querySelector("p")) {
@@ -346,20 +319,42 @@ const deleteAllError = () => {
     }
   });
 };
+
+const reset = (e) => {
+  deleteAllError();
+  cleanValue();
+  e.preventDefault();
+};
+
 const cleanValue = () => {
   label.forEach((element) => {
     element.lastElementChild.value = "";
   });
 };
 
-//button submit
+const emptyField = () => {
+  if (Object.values(USER_DATA).includes(false)) {
+    return message = ERROR_MESSAGE.epmtyFields
+  } else return false
+}
+const haveError = () => {
+  if (document.querySelector('p')){
+    return message = ERROR_MESSAGE.haveError
+  }else return false
+}
+
 const submitHeandler = (e) => {
   e.preventDefault();
-  const result = VALIDATOR(label, confirm_password.name);
-  deleteError(confirm_password.name);
-  if (result) {
-    applyError(confirm_password.name, result);
-  }else done();
+  deleteError('button')
+  const userEmpty = emptyField()
+  const err = haveError()
+  if (userEmpty) {
+    return applyError('button', userEmpty)
+  } else if (err) {
+    return applyError('button', err)
+  }
+  cleanValue()
+  done()
 };
 
 //add img done
